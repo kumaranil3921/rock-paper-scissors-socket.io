@@ -1,0 +1,11 @@
+
+<div class="users_list">
+  <h1 style="color: white;">Online Users</h1>
+  <div class="list-group" id="myList">
+    <% for(let key in users) {%>
+      <div class="list-group-item list-group-item-action" onclick="playWith('<%= key %>')"> 
+        <%= users[key].user_name %>
+      </div>
+    <% } %>
+  </div>
+</div>
