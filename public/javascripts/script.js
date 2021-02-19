@@ -1,14 +1,36 @@
-let computerScore = 1;
-let playerScore = 1;
-const pScore = document.getElementById('playerScore');
-const cScore = document.getElementById('computerScore');
+const videoGrid = document.getElementById('video-grid');
+const peerIdElem = document.getElementById('peer_id');
+let myPeerId;
+const myPeer = new Peer(undefined, {
+  path: '/peerjs',
+  host: window.location.hostname,
+  port: '3001'
+})
+
+const myVideo = document.createElement('video');
+myVideo.muted = true;
+myVideo.pause = true
+let myVideoStream;
+navigator.mediaDevices.getUserMedia({
+  video: true,
+  audio: true
+}).then(stream => {
+  myVideoStream = stream;
+})
+
+
+const socket = io();
+myPeer.on('open', id => {
+  peerIdElem.value = id;
+  setTimeout(() => {
+    socket.emit('set_peer_id', { peer_id: id });
+  }, 2000);
+})
 const buttons = document.querySelectorAll('.selection button');
 const showIcon = document.querySelector('.show i');
-const computerShowIcon = document.querySelector('.computer i');
 
 const randomClasses = ["fas fa-hand-rock", "fas fa-hand-paper", "fas fa-hand-scissors"];
-const text = document.getElementById('demo');
-const text2 = document.getElementById('demo2');
+
 let selectedOption;
 const options = {
   'fas fa-hand-rock': 'r',
@@ -21,13 +43,13 @@ const options_reverse = {
   's': 'fas fa-hand-scissors'
 }
 
-const socket = io.connect('https://rock-paper-scissor-socketio.herokuapp.com');
 let selected_user;
 document.getElementById('main').style = "display:none;";
 function askUserName() {
   let person = promptUserName();
   sendUserNameToServer(person);
 }
+
 socket.on('user_name_conflict', (data) => {
   alert(`${data.user_name} aleady exist.`);
   person = promptUserName();
@@ -48,7 +70,7 @@ socket.on('wants_to_play', (data) => {
     window.focus();
   }
   alert(`${data.user_name} wants to play with u. please confirm`);
-  const result = confirm(`${data.user_name} wants to play with u.`);
+  const result = true // confirm(`${data.user_name} wants to play with u.`);
   acceptRejectInvite(result, data);
 });
 socket.on('accept_reject_invite', (data) => {
@@ -61,13 +83,26 @@ socket.on('accept_reject_invite', (data) => {
     document.getElementById('main').style = '';
     document.getElementById('waiting').style = "display:none;";
     document.getElementById('opponent_name').innerText = data.user_name + ": ";
+    myPeer.call(data.peer_id, myVideoStream);
+    myPeer.on('call', (call) => {
+      call.answer(myVideoStream);
+      call.on('stream', userVideoStream => {
+        addVideoStream(myVideo, userVideoStream)
+      });
+    })
   }
 });
 
 socket.on('invite_accepted', (data) => {
-
   document.getElementById('main').style = '';
   document.getElementById('waiting').style = "display:none;";
+  myPeer.call(data.peer_id, myVideoStream);
+  myPeer.on('call', (call) => {
+    call.answer(myVideoStream);
+    call.on('stream', userVideoStream => {
+      addVideoStream(myVideo, userVideoStream)
+    });
+  })
 });
 
 socket.on('p1_selected', (data) => {
@@ -125,21 +160,25 @@ function playWith(user_id) {
 }
 function acceptRejectInvite(result, data) {
   document.getElementById('opponent_name').innerText = data.user_name + " :";
-  socket.emit('accept_reject_invite', { answer: result, user_data: data });
+  socket.emit('accept_reject_invite', { answer: result, user_data: data, peer_id: myPeerId });
 }
 window.addEventListener('beforeunload', (event) => {
   socket.emit('disconnet', {});
 });
+function addVideoStream(video, stream) {
+  video.srcObject = stream;
+  video.addEventListener('loadedmetadata', () => {
+    video.play();
+  })
+  videoGrid.append(video);
+}
 
 // Game Functionality.
 const game = () => {
   buttons.forEach(btn => {
     btn.addEventListener('click', (e) => {
-      // Random rock paper scissor for the computer and clicked ones for the player
       let clickedBtn = e.target.className;
       showIcon.className = clickedBtn;
-      // let randomNum = Math.floor(Math.random() * randomClasses.length);
-      // computerShowIcon.className = randomClasses[randomNum];
       selectedOption = options[clickedBtn];
       socket.emit('selected', { selected_option: selectedOption });
 

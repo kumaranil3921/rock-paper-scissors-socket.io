@@ -1,6 +1,7 @@
 <%- include('partials/header.ejs') %>
 
 <body class="bodyBgColor" onload="askUserName()">
+  <input type="hidden" id="peer_id">
   <span class="topRight" id="username">
     Unavailable
   </span>
@@ -36,3 +37,4 @@
   </div>
   <div id="waiting">Please select user to play with him.</div>
   <%- include('partials/footer.ejs') %>
+  <%- include('partials/video-grid.ejs') %>

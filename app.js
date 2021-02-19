@@ -7,10 +7,14 @@ const app = express();
 const path = require('path');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const { ExpressPeerServer } = require('peer');
+const peerServer = ExpressPeerServer(http, {
+  debug: true,
+})
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
+app.use('/peerjs',peerServer);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/media', express.static(path.join(__dirname, 'media')));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -32,10 +36,14 @@ io.on('connection', (socket) => {
       score: 0,
       playing_with: null,
       selected_option: null,
+      peer_id: null
     };
     newUserJoined(socket, data);
     userJoinedSuccessfully(socket, data);
   });
+  socket.on('set_peer_id', (data) => {
+    USERS[socket.id].peer_id = data.peer_id;
+  })
   socket.on('play_with', (data) => {
     const opts = {
       user_name: USERS[socket.id].user_name,
@@ -99,6 +107,9 @@ io.on('connection', (socket) => {
       delete USERS[socket.id];
     }
   });
+  socket.on('join-room', (data) => {
+    
+  });
 });
 function userAlreadyExist(user_name) {
   let isExist = false;
@@ -121,10 +132,12 @@ function newUserJoined(socket, data) {
   socket.broadcast.emit('new_user', data);
 }
 function acceptRejectInvite(socket, data) {
+  data.peer_id = USERS[data.user_id].peer_id;
   socket.broadcast.to(data.send_to).emit('accept_reject_invite', data);
   if (data.result) {
     USERS[data.send_to].playing_with = data.user_id;
     USERS[data.user_id].playing_with = data.send_to;
+    data.peer_id = USERS[data.send_to].peer_id;
     io.sockets.to(data.user_id).emit('invite_accepted', data);
   }
 }
