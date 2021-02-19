@@ -1,10 +1,11 @@
 const videoGrid = document.getElementById('video-grid');
 const peerIdElem = document.getElementById('peer_id');
 let myPeerId;
+const socket = io('/');
 const myPeer = new Peer(undefined, {
   path: '/peerjs',
-  host: window.location.hostname,
-  port: 443
+  host: '/',
+  port: '443'
 })
 
 const myVideo = document.createElement('video');
@@ -19,7 +20,6 @@ navigator.mediaDevices.getUserMedia({
 })
 
 
-const socket = io();
 myPeer.on('open', id => {
   peerIdElem.value = id;
   setTimeout(() => {
