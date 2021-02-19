@@ -40,7 +40,7 @@ socket.on('joined_successfully', (data) => {
 });
 
 socket.on('new_user', (data) => {
-  document.getElementById("myList").innerHTML += `<div class="list-group-item list-group-item-action" onclick="playWith('${data.user_id}')">${data.user_name}</div>`;
+  document.getElementById("myList").innerHTML += `<div id="${data.user_id}" class="list-group-item list-group-item-action" onclick="playWith('${data.user_id}')">${data.user_name}</div>`;
 });
 
 socket.on('wants_to_play', (data) => {
@@ -48,7 +48,6 @@ socket.on('wants_to_play', (data) => {
     window.focus();
   }
   const result = confirm(`${data.user_name} wants to play with u.`);
-  console.log("wants_to_play", data, "result >  ", result);
   acceptRejectInvite(result, data);
 });
 socket.on('accept_reject_invite', (data) => {
@@ -65,25 +64,22 @@ socket.on('accept_reject_invite', (data) => {
 });
 
 socket.on('invite_accepted', (data) => {
-  console.log("invite_accepted", data);
+
   document.getElementById('main').style = '';
   document.getElementById('waiting').style = "display:none;";
 });
 
 socket.on('p1_selected', (data) => {
-  console.log('p1_selected', data);
   alert(`${data.user_name} selected his choice`);
 });
 
 socket.on('loss', (data) => {
-  console.log('loss')
   document.getElementById('opponent_score').innerText = data.loser_score;
   document.getElementById('your_score').innerText = data.winner_score;
   alert('You loss :disappointed:. Try Again');
 
 });
 socket.on('win', (data) => {
-  console.log('win')
   document.getElementById('your_score').innerText = data.winner_score;
   document.getElementById('opponent_score').innerText = data.loser_score;
   alert('You Win :fireworks:. Please continue');
@@ -97,8 +93,20 @@ socket.on('selected_options', (data) => {
   setTimeout(() => {
     document.getElementById('player1_selected_option').className = randomClasses[0];
     document.getElementById('player2_selected_option').className = "fas fa-spinner";
-  },1000)
+  }, 1000);
 });
+
+socket.on('re-render-user-list', (data) => {
+  const elem = document.getElementById(data.user_id);
+  if (elem) {
+    elem.remove();
+  }
+});
+
+socket.on('user_left', (data) => {
+  document.getElementById('main').style = "display:none;";
+  alert(`${data.user_name} has left the game`);
+})
 
 function promptUserName() {
   let answer;
@@ -118,13 +126,13 @@ function acceptRejectInvite(result, data) {
   document.getElementById('opponent_name').innerText = data.user_name + " :";
   socket.emit('accept_reject_invite', { answer: result, user_data: data });
 }
-
+window.addEventListener('beforeunload', (event) => {
+  socket.emit('disconnet', {});
+});
 
 // Game Functionality.
 const game = () => {
-  console.log("game", buttons)
   buttons.forEach(btn => {
-    console.log("buttons", buttons)
     btn.addEventListener('click', (e) => {
       // Random rock paper scissor for the computer and clicked ones for the player
       let clickedBtn = e.target.className;
@@ -136,5 +144,5 @@ const game = () => {
 
     });
   });
-}
+};
 game();

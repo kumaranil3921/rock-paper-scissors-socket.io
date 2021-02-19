@@ -21,11 +21,10 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   socket.on('joined', (data) => {
-    console.log("joined event listend");
     const { user_name } = data;
-    // if (userAlreadyExist(user_name)) {
-    //   return askNewUserName(socket, data);
-    // }
+    if (userAlreadyExist(user_name)) {
+      return askNewUserName(socket, data);
+    }
     USERS[socket.id] = {
       // socket: socket,
       user_name: user_name,
@@ -45,7 +44,6 @@ io.on('connection', (socket) => {
     socket.broadcast.to(data.user_id).emit('wants_to_play', opts);
   });
   socket.on('accept_reject_invite', (data) => {
-    console.log('accept_reject_invite', data);
     const opts = {
       user_name: USERS[socket.id].user_name,
       user_id: socket.id,
@@ -55,14 +53,12 @@ io.on('connection', (socket) => {
     acceptRejectInvite(socket, opts);
   });
   socket.on('selected', (data) => {
-    console.log("selected", data);
     USERS[socket.id].selected_option = data.selected_option;
     const opt1 = USERS[socket.id].selected_option;
     const opt2 = USERS[USERS[socket.id].playing_with].selected_option;
     const opts = {
       user_name: USERS[socket.id].user_name
     }
-    console.log("userss >> ",USERS)
     if (opt1 && opt2) {
       const player1 = {
         user_id: socket.id,
@@ -75,7 +71,6 @@ io.on('connection', (socket) => {
         opponent_id: socket.id
       }
       const winner = findWinner(player1, player2);
-      console.log("winner  ", winner);
       if (!winner.tied) {
         USERS[winner.user_id].score = USERS[winner.user_id].score + 1;
         const res = { winner_score: USERS[winner.user_id].score, loser_score: USERS[winner.opponent_id].score };
@@ -91,14 +86,29 @@ io.on('connection', (socket) => {
       USERS[player1.user_id].selected_option = null;
       USERS[player2.user_id].selected_option = null;
     } else {
-      console.log('p1', socket.id)
-      console.log('p2',USERS[socket.id].playing_with)
       io.sockets.to(USERS[socket.id].playing_with).emit('p1_selected', opts);
+    }
+  });
+  socket.on('disconnet', (data) => {
+    socket.broadcast.emit('re-render-user-list', { user_id: socket.id });
+    if (USERS[socket.id]) {
+      io.sockets.to(USERS[socket.id].playing_with).emit('user_left', { user_name: USERS[socket.id].user_name });
+      USERS[socket.id].playing_with = null;
+      USERS[socket.id].score = null;
+      USERS[socket.id].selected_option = null;
+      delete USERS[socket.id];
     }
   });
 });
 function userAlreadyExist(user_name) {
-  return Object.values(USERS).indexOf(user_name) >= 0;
+  let isExist = false;
+  for (key in USERS) {
+    if (USERS[key].user_name === user_name) {
+      isExist = true;
+      break;
+    }
+  }
+  return isExist;
 }
 function askNewUserName(socket, data) {
   socket.emit('user_name_conflict', data);
@@ -113,11 +123,8 @@ function newUserJoined(socket, data) {
 function acceptRejectInvite(socket, data) {
   socket.broadcast.to(data.send_to).emit('accept_reject_invite', data);
   if (data.result) {
-    console.log("acceptRejectInvite", data)
     USERS[data.send_to].playing_with = data.user_id;
     USERS[data.user_id].playing_with = data.send_to;
-    console.log('username: ', USERS[data.send_to].user_name, 'playing_with: ', USERS[USERS[data.send_to].playing_with].user_name);
-    console.log('username: ', USERS[USERS[data.send_to].playing_with].user_name, 'playing_with: ', USERS[data.send_to].user_name);
     io.sockets.to(data.user_id).emit('invite_accepted', data);
   }
 }
