@@ -44,7 +44,11 @@ socket.on('new_user', (data) => {
 });
 
 socket.on('wants_to_play', (data) => {
+  if (document.hidden) {
+    window.focus();
+  }
   const result = confirm(`${data.user_name} wants to play with u.`);
+  console.log("wants_to_play", data, "result >  ", result);
   acceptRejectInvite(result, data);
 });
 socket.on('accept_reject_invite', (data) => {
