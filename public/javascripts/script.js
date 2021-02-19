@@ -4,7 +4,7 @@ let myPeerId;
 const myPeer = new Peer(undefined, {
   path: '/peerjs',
   host: window.location.hostname,
-  port: '3001'
+  port: 443
 })
 
 const myVideo = document.createElement('video');
