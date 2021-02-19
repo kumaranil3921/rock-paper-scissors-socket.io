@@ -21,7 +21,7 @@ const options_reverse = {
   's': 'fas fa-hand-scissors'
 }
 
-const socket = io();
+const socket = io.connect('https://rock-paper-scissor-socketio.herokuapp.com');
 let selected_user;
 document.getElementById('main').style = "display:none;";
 function askUserName() {
