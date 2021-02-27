@@ -20,12 +20,20 @@ const options_reverse = {
   'p': 'fas fa-hand-paper',
   's': 'fas fa-hand-scissors'
 }
+$(document).ready(function() {
+  $('.toast').toast({
+    'autohide': false
+  });
 
-const socket = io.connect('https://rock-paper-scissor-socketio.herokuapp.com');
+  $('.toast').toast('show');
+});
+
+const socket = io.connect('');
 let selected_user;
 document.getElementById('main').style = "display:none;";
 function askUserName() {
-  let person = promptUserName();
+
+  let person = 'ds' //promptUserName();
   sendUserNameToServer(person);
 }
 socket.on('user_name_conflict', (data) => {
@@ -35,8 +43,8 @@ socket.on('user_name_conflict', (data) => {
 });
 
 socket.on('joined_successfully', (data) => {
-  document.getElementById('username').innerText = data.user_name;
-  alert(`Welcome ${data.user_name}`);
+  // document.getElementById('username').innerText = data.user_name;
+  // alert(`Welcome ${data.user_name}`);
 });
 
 socket.on('new_user', (data) => {
@@ -135,11 +143,8 @@ window.addEventListener('beforeunload', (event) => {
 const game = () => {
   buttons.forEach(btn => {
     btn.addEventListener('click', (e) => {
-      // Random rock paper scissor for the computer and clicked ones for the player
       let clickedBtn = e.target.className;
       showIcon.className = clickedBtn;
-      // let randomNum = Math.floor(Math.random() * randomClasses.length);
-      // computerShowIcon.className = randomClasses[randomNum];
       selectedOption = options[clickedBtn];
       socket.emit('selected', { selected_option: selectedOption });
 

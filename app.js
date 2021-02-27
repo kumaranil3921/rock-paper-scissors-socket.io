@@ -16,10 +16,17 @@ app.use('/media', express.static(path.join(__dirname, 'media')));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-  res.render('index', { users: USERS });
+  res.render('index2', { users: USERS });
 });
 
 io.on('connection', (socket) => {
+  socket.on('username', (data) => {
+    const { user_name } = data;
+    if (userAlreadyExist(user_name)) {
+      return askNewUserName(socket, data);
+    }
+    validUserName(socket, user_name);
+  });
   socket.on('joined', (data) => {
     const { user_name } = data;
     if (userAlreadyExist(user_name)) {
@@ -89,7 +96,7 @@ io.on('connection', (socket) => {
       io.sockets.to(USERS[socket.id].playing_with).emit('p1_selected', opts);
     }
   });
-  socket.on('disconnet', (data) => {
+  socket.on('disconnect', (data) => {
     socket.broadcast.emit('re-render-user-list', { user_id: socket.id });
     if (USERS[socket.id]) {
       io.sockets.to(USERS[socket.id].playing_with).emit('user_left', { user_name: USERS[socket.id].user_name });
@@ -113,12 +120,15 @@ function userAlreadyExist(user_name) {
 function askNewUserName(socket, data) {
   socket.emit('user_name_conflict', data);
 }
+function validUserName(socket, data) {
+  socket.emit('valid_user_name', data);
+}
 function userJoinedSuccessfully(socket, data) {
-  socket.emit('joined_successfully', data);
+  socket.emit('joined-successfully', data);
 }
 function newUserJoined(socket, data) {
   data.user_id = socket.id;
-  socket.broadcast.emit('new_user', data);
+  socket.broadcast.emit('new-user', data);
 }
 function acceptRejectInvite(socket, data) {
   socket.broadcast.to(data.send_to).emit('accept_reject_invite', data);

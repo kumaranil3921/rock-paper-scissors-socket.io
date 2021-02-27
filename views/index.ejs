@@ -1,9 +1,10 @@
 <%- include('partials/header.ejs') %>
 
 <body class="bodyBgColor" onload="askUserName()">
-  <span class="topRight" id="username">
+  <%- include('partials/toaster.ejs') %>
+  <!-- <span class="topRight" id="username">
     Unavailable
-  </span>
+  </span> -->
   <%- include('partials/users_list.ejs') %>
   <h1>Rock Paper Scissors</h1>
   <h2 id="demo">Try your luck ! </h2>
