@@ -126,7 +126,6 @@ socket.on('accept_reject_invite', (data) => {
   $('.toast').toast('show');
   if (data.result) {
     document.getElementById('main').style = '';
-    // document.getElementById('waiting').style = "display:none;";
     document.getElementById('opponent_name').innerText = data.user_name + ": ";
     $('#main').removeClass('hide-game');
     pScore = document.getElementById('playerScore');
@@ -158,21 +157,20 @@ socket.on('invite_accepted', (data) => {
   text2 = document.getElementById('demo2');
 });
 socket.on('p1_selected', (data) => {
-  // alert(`${data.user_name} selected his choice`);
   $('#toast-msg').html(`${data.user_name} selected his choice`);
   $('.toast').toast('show');
 });
 socket.on('loss', (data) => {
   document.getElementById('opponent_score').innerText = data.loser_score;
   document.getElementById('your_score').innerText = data.winner_score;
-  $('#toast-msg').html('You loss :disappointed:. Try Again');
+  $('#toast-msg').html('You loss 😞. Try Again');
   $('.toast').toast('show');
 
 });
 socket.on('win', (data) => {
   document.getElementById('your_score').innerText = data.winner_score;
   document.getElementById('opponent_score').innerText = data.loser_score;
-  $('#toast-msg').html('You Win :fireworks:. Please continue');
+  $('#toast-msg').html('You Win 🎆🎆. Please continue');
   $('.toast').toast('show');
 });
 socket.on('tied', (data) => {
@@ -186,6 +184,20 @@ socket.on('selected_options', (data) => {
     document.getElementById('player1_selected_option').className = randomClasses[0];
     document.getElementById('player2_selected_option').className = "fas fa-spinner";
   }, 1000);
+});
+
+socket.on('user-left', (data) => {
+  $('#main').addClass('hide-game');
+  alert(`${data.user_name} has left the game`);
+});
+
+socket.on('re-render-user-list', (data) => {
+  const elem = document.getElementById(data.user_id);
+  if (elem) {
+    elem.remove();
+    $('#toast-msg').html(`User <strong>${data.user_name}</strong> went offline`);
+    $('.toast').toast('show');
+  }
 });
 function game() {
   buttons.forEach(btn => {

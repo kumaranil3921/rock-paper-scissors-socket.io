@@ -80,11 +80,11 @@ io.on('connection', (socket) => {
       const winner = findWinner(player1, player2);
       if (!winner.tied) {
         USERS[winner.user_id].score = USERS[winner.user_id].score + 1;
-        const res = { winner_score: USERS[winner.user_id].score, loser_score: USERS[winner.opponent_id].score };
-        io.sockets.to(winner.user_id).emit('win', res);
-        io.sockets.to(winner.opponent_id).emit('loss', res);
+        const loss_res = { winner_score: USERS[winner.opponent_id].score, loser_score: USERS[winner.user_id].score};
+        const win_res = { winner_score: USERS[winner.user_id].score, loser_score: USERS[winner.opponent_id].score };
+        io.sockets.to(winner.user_id).emit('win', win_res);
+        io.sockets.to(winner.opponent_id).emit('loss', loss_res);
       } else {
-        // const res = { winner_score: USERS[winner.player2_user_id].score, loser_score: USERS[winner.opponent_id].score };
         io.sockets.to(winner.player2_user_id).emit('tied', {});
         io.sockets.to(winner.player1_user_id).emit('tied', {});
       }
@@ -97,9 +97,10 @@ io.on('connection', (socket) => {
     }
   });
   socket.on('disconnect', (data) => {
-    socket.broadcast.emit('re-render-user-list', { user_id: socket.id });
+    console.log('disconnect', USERS[socket.id])
     if (USERS[socket.id]) {
-      io.sockets.to(USERS[socket.id].playing_with).emit('user_left', { user_name: USERS[socket.id].user_name });
+      socket.broadcast.emit('re-render-user-list', { user_id: socket.id, user_name: USERS[socket.id].user_name });
+      io.sockets.to(USERS[socket.id].playing_with).emit('user-left', { user_name: USERS[socket.id].user_name });
       USERS[socket.id].playing_with = null;
       USERS[socket.id].score = null;
       USERS[socket.id].selected_option = null;
