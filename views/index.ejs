@@ -1,38 +1,48 @@
-<%- include('partials/header.ejs') %>
+<!DOCTYPE html>
+<html lang="en">
 
-<body class="bodyBgColor" onload="askUserName()">
-  <span class="topRight" id="username">
-    Unavailable
-  </span>
-  <%- include('partials/users_list.ejs') %>
-  <h1>Rock Paper Scissors</h1>
-  <h2 id="demo">Try your luck ! </h2>
-  <div id="main">
-    <div class="custom-container">
-      <div class="section">
-        <div class="info">
-          <h3>You :</h3><span id="your_score">0</span>
-        </div>
-        <div class="show">
-          <i class="fas fa-hand-rock" id="player1_selected_option"></i>
-        </div>
-      </div>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rock Paper Scissors</title>
+  <link rel="stylesheet" href="/stylesheets/style.css" />
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <!-- CSS only -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <!-- JavaScript Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+    crossorigin="anonymous"></script>
 
-      <div class="section">
-        <div class="info">
-          <h3 id="opponent_name">Opponent :</h3><span id="opponent_score">0</span>
-        </div>
-        <div class="show computer">
-          <i class="fas fa-spinner" id="player2_selected_option"></i>
-        </div>
-      </div>
+  <script src="https://kit.fontawesome.com/e391ce7786.js" crossorigin="anonymous"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+
+
+</head>
+
+<body onload="askUserName()" style="background-color: #0d0911;">
+  <div class="row">
+    <%- include('partials/user_name_modal.ejs') %>
+    <%- include('partials/invite_modal.ejs') %>
+    <div class="col col-xs-4">
+      <%- include('partials/users_list.ejs') %>
     </div>
-    <h2 style="color: rgb(233, 33, 19); margin: auto;">Choose One !</h2>
-    <div class="selection">
-      <button class="fas fa-hand-rock" id="rock"></button>
-      <button class="fas fa-hand-paper" id="paper"></button>
-      <button class="fas fa-hand-scissors" id="scissors"></button>
+    <div class="col col-xs-7">
+      <%- include('partials/game.ejs') %>
     </div>
+    <div class="col col-xs-1">
+      <%- include('partials/toaster.ejs') %>
+      <div class="username" id="username">
+    </div>
+
   </div>
-  <div id="waiting">Please select user to play with him.</div>
-  <%- include('partials/footer.ejs') %>
+
+  </div>
+
+  <script type="text/javascript" src="/javascripts/script.js"></script>
+</body>
+
+</html>

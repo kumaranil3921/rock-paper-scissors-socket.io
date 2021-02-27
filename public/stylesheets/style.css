@@ -1,14 +1,28 @@
-
-.bodyBgColor{
-  background-color: #0d0911;
+body{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
 }
-.users_list{
+.game{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hide-user-list{
+  display: none;
+}
+.hide-toast{
+  display: none;
+}
+.users-list{
   height: 100%;
   width: 20%;
   position: absolute;
   left: 10px
 }
-.topRight{
+.username{
   position: absolute;
   right: 20px;
   top: 10px;
@@ -32,18 +46,15 @@ left: 30%;
   position: absolute;
   right: 30%;
 }
-
+.hide-game{
+  display: none;
+}
 *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-body{
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+
 h1{
   font-family: sans-serif;
   font-weight: 800;
@@ -70,14 +81,14 @@ h1{
   font-family: sans-serif;
   color: white;
 }
-.show{
+.show-score{
   display: flex;
   align-items: center;
   justify-content: center;
   background : rgb(41, 40, 40);
   height: 220px;
 }
-.show i{
+.show-score i{
   font-size: 100px;
   color: orange;
 }
@@ -88,8 +99,8 @@ h2{
 }
 .selection{
   display: flex;
-  /* align-items: center;
-  justify-content: center; */
+  align-items: center;
+  justify-content: center;
   width: 350px;
   height: 100px;
   margin: auto;
