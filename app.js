@@ -7,10 +7,15 @@ const app = express();
 const path = require('path');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const { ExpressPeerServer } = require('peer');
+const peerServer = ExpressPeerServer(http, {
+  debug: true,
+})
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+app.use('/peerjs', peerServer);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/media', express.static(path.join(__dirname, 'media')));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -28,7 +33,7 @@ io.on('connection', (socket) => {
     validUserName(socket, user_name);
   });
   socket.on('joined', (data) => {
-    const { user_name } = data;
+    const { user_name, peer_id } = data;
     if (userAlreadyExist(user_name)) {
       return askNewUserName(socket, data);
     }
@@ -39,7 +44,9 @@ io.on('connection', (socket) => {
       score: 0,
       playing_with: null,
       selected_option: null,
+      peer_id
     };
+    console.log('NEW USER: ', USERS[socket.id]);
     newUserJoined(socket, data);
     userJoinedSuccessfully(socket, data);
   });
@@ -80,7 +87,7 @@ io.on('connection', (socket) => {
       const winner = findWinner(player1, player2);
       if (!winner.tied) {
         USERS[winner.user_id].score = USERS[winner.user_id].score + 1;
-        const loss_res = { winner_score: USERS[winner.opponent_id].score, loser_score: USERS[winner.user_id].score};
+        const loss_res = { winner_score: USERS[winner.opponent_id].score, loser_score: USERS[winner.user_id].score };
         const win_res = { winner_score: USERS[winner.user_id].score, loser_score: USERS[winner.opponent_id].score };
         io.sockets.to(winner.user_id).emit('win', win_res);
         io.sockets.to(winner.opponent_id).emit('loss', loss_res);
@@ -132,10 +139,12 @@ function newUserJoined(socket, data) {
   socket.broadcast.emit('new-user', data);
 }
 function acceptRejectInvite(socket, data) {
+  data.peer_id = USERS[data.user_id].peer_id;
   socket.broadcast.to(data.send_to).emit('accept_reject_invite', data);
   if (data.result) {
     USERS[data.send_to].playing_with = data.user_id;
     USERS[data.user_id].playing_with = data.send_to;
+    data.peer_id = USERS[data.send_to].peer_id;
     io.sockets.to(data.user_id).emit('invite_accepted', data);
   }
 }

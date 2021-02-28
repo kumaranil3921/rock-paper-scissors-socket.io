@@ -1,5 +1,10 @@
-const socket = io.connect({transports: ['websocket'], upgrade: true});
+const socket = io.connect();
+let myPeer;
+let myPeerId;
 let playWithUser = null;
+let myVideo;
+let videoGrid;
+let myVideoStream;
 const options = {
   'fas fa-hand-rock': 'r',
   'fas fa-hand-paper': 'p',
@@ -26,6 +31,7 @@ function askUserName() {
   setDefaultValues()
   toggleUsernameModal();
   game();
+  initializePeerClient();
 }
 
 $('#username').on('input', function (e) {
@@ -66,7 +72,11 @@ function validateUserName(username) {
 }
 
 function sendUserNameToServer(person) {
-  socket.emit('joined', { user_name: person });
+  const data = {
+    user_name: person,
+    peer_id: myPeerId
+  }
+  socket.emit('joined', data);
 }
 function playWith(user_id) {
   selected_user = user_id;
@@ -135,6 +145,8 @@ socket.on('accept_reject_invite', (data) => {
     showIcon = document.querySelector('.show-score i');
     text = document.getElementById('demo');
     text2 = document.getElementById('demo2');
+    createVideoElement();
+    getAudioVedioPermissions(data.peer_id);
   }
 });
 
@@ -156,6 +168,8 @@ socket.on('invite_accepted', (data) => {
   showIcon = document.querySelector('.show-score i');
   text = document.getElementById('demo');
   text2 = document.getElementById('demo2');
+  createVideoElement();
+  getAudioVedioPermissions(data.peer_id);
 });
 socket.on('p1_selected', (data) => {
   $('#toast-msg').html(`${data.user_name} selected his choice`);
@@ -200,6 +214,7 @@ socket.on('re-render-user-list', (data) => {
     $('.toast').toast('show');
   }
 });
+
 function game() {
   buttons.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -210,3 +225,44 @@ function game() {
     });
   });
 };
+function initializePeerClient() {
+  myPeer = new Peer({
+    host: location.hostname,
+    port: location.port || (location.protocol === 'https:' ? 443 : 80),
+    path: '/peerjs'
+  });
+  myPeer.on('open', id => {
+    myPeerId = id;
+  })
+}
+function getAudioVedioPermissions(peer_id) {
+  navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  }).then(stream => {
+    myVideoStream = stream;
+    callPeer(peer_id, myVideoStream);
+  })
+}
+function createVideoElement() {
+  videoGrid = document.getElementById('video-grid');
+  myVideo = document.createElement('video');
+  myVideo.muted = true;
+  myVideo.pause = true
+}
+function callPeer(peer_id, videStream) {
+  myPeer.call(peer_id, videStream);
+  myPeer.on('call', (call) => {
+    call.answer(videStream);
+    call.on('stream', userVideoStream => {
+      addVideoStream(myVideo, userVideoStream)
+    });
+  })
+}
+function addVideoStream(video, stream) {
+  video.srcObject = stream;
+  video.addEventListener('loadedmetadata', () => {
+    video.play();
+  })
+  videoGrid.append(video);
+}
